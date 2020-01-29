@@ -34,13 +34,13 @@ trait InteractsWithTime
 
         return $delay instanceof DateTimeInterface
                             ? $delay->getTimestamp()
-                            : Carbon::now()->addRealSeconds($delay)->getTimestamp();
+                            : Carbon::now()->addSeconds($delay)->getTimestamp();
     }
 
     /**
      * If the given value is an interval, convert it to a DateTime instance.
      *
-     * @param  \DateTimeInterface|\DateInterval|int  $delay
+     * @param \DateTimeInterface|\DateInterval|int
      * @return \DateTimeInterface|int
      */
     protected function parseDateInterval($delay)

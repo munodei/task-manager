@@ -1,12 +1,13 @@
 <?php
 /*
- * This file is part of sebastian/comparator.
+ * This file is part of the Comparator package.
  *
  * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace SebastianBergmann\Comparator;
 
 use DOMDocument;
@@ -56,7 +57,7 @@ class DOMNodeComparator extends ObjectComparator
                 $expectedAsString,
                 $actualAsString,
                 false,
-                \sprintf("Failed asserting that two DOM %s are equal.\n", $type)
+                sprintf("Failed asserting that two DOM %s are equal.\n", $type)
             );
         }
     }
@@ -81,6 +82,6 @@ class DOMNodeComparator extends ObjectComparator
 
         $text = $node instanceof DOMDocument ? $node->saveXML() : $document->saveXML($node);
 
-        return $ignoreCase ? \strtolower($text) : $text;
+        return $ignoreCase ? $text : strtolower($text);
     }
 }

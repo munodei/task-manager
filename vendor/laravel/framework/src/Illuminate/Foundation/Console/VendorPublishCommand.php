@@ -3,12 +3,11 @@
 namespace Illuminate\Foundation\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Arr;
-use Illuminate\Support\ServiceProvider;
-use League\Flysystem\Adapter\Local as LocalAdapter;
-use League\Flysystem\Filesystem as Flysystem;
 use League\Flysystem\MountManager;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\ServiceProvider;
+use League\Flysystem\Filesystem as Flysystem;
+use League\Flysystem\Adapter\Local as LocalAdapter;
 
 class VendorPublishCommand extends Command
 {
@@ -38,10 +37,10 @@ class VendorPublishCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'vendor:publish {--force : Overwrite any existing files}
-                    {--all : Publish assets for all service providers without prompt}
-                    {--provider= : The service provider that has assets you want to publish}
-                    {--tag=* : One or many tags that have assets you want to publish}';
+    protected $signature = 'vendor:publish {--force : Overwrite any existing files.}
+                    {--all : Publish assets for all service providers without prompt.}
+                    {--provider= : The service provider that has assets you want to publish.}
+                    {--tag=* : One or many tags that have assets you want to publish.}';
 
     /**
      * The console command description.
@@ -90,7 +89,7 @@ class VendorPublishCommand extends Command
             return;
         }
 
-        [$this->provider, $this->tags] = [
+        list($this->provider, $this->tags) = [
             $this->option('provider'), (array) $this->option('tag'),
         ];
 
@@ -127,24 +126,24 @@ class VendorPublishCommand extends Command
     {
         return array_merge(
             ['<comment>Publish files from all providers and tags listed below</comment>'],
-            preg_filter('/^/', '<comment>Provider: </comment>', Arr::sort(ServiceProvider::publishableProviders())),
-            preg_filter('/^/', '<comment>Tag: </comment>', Arr::sort(ServiceProvider::publishableGroups()))
+            preg_filter('/^/', '<comment>Provider: </comment>', ServiceProvider::publishableProviders()),
+            preg_filter('/^/', '<comment>Tag: </comment>', ServiceProvider::publishableGroups())
         );
     }
 
     /**
      * Parse the answer that was given via the prompt.
      *
-     * @param  string  $choice
+     * @param string $choice
      * @return void
      */
     protected function parseChoice($choice)
     {
-        [$type, $value] = explode(': ', strip_tags($choice));
+        list($type, $value) = explode(': ', strip_tags($choice));
 
-        if ($type === 'Provider') {
+        if ($type == 'Provider') {
             $this->provider = $value;
-        } elseif ($type === 'Tag') {
+        } elseif ($type == 'Tag') {
             $this->tags = [$value];
         }
     }
@@ -157,18 +156,8 @@ class VendorPublishCommand extends Command
      */
     protected function publishTag($tag)
     {
-        $published = false;
-
         foreach ($this->pathsToPublish($tag) as $from => $to) {
             $this->publishItem($from, $to);
-
-            $published = true;
-        }
-
-        if ($published) {
-            $this->info('Publishing complete.');
-        } else {
-            $this->error('Unable to locate publishable resources.');
         }
     }
 

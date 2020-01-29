@@ -1,12 +1,13 @@
 <?php
 /*
- * This file is part of sebastian/comparator.
+ * This file is part of the Comparator package.
  *
  * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace SebastianBergmann\Comparator;
 
 /**
@@ -24,7 +25,7 @@ class ObjectComparator extends ArrayComparator
      */
     public function accepts($expected, $actual)
     {
-        return \is_object($expected) && \is_object($actual);
+        return is_object($expected) && is_object($actual);
     }
 
     /**
@@ -41,24 +42,24 @@ class ObjectComparator extends ArrayComparator
      */
     public function assertEquals($expected, $actual, $delta = 0.0, $canonicalize = false, $ignoreCase = false, array &$processed = [])
     {
-        if (\get_class($actual) !== \get_class($expected)) {
+        if (get_class($actual) !== get_class($expected)) {
             throw new ComparisonFailure(
                 $expected,
                 $actual,
                 $this->exporter->export($expected),
                 $this->exporter->export($actual),
                 false,
-                \sprintf(
+                sprintf(
                     '%s is not instance of expected class "%s".',
                     $this->exporter->export($actual),
-                    \get_class($expected)
+                    get_class($expected)
                 )
             );
         }
 
         // don't compare twice to allow for cyclic dependencies
-        if (\in_array([$actual, $expected], $processed, true) ||
-            \in_array([$expected, $actual], $processed, true)) {
+        if (in_array([$actual, $expected], $processed, true) ||
+            in_array([$expected, $actual], $processed, true)) {
             return;
         }
 
@@ -82,8 +83,8 @@ class ObjectComparator extends ArrayComparator
                     $expected,
                     $actual,
                     // replace "Array" with "MyClass object"
-                    \substr_replace($e->getExpectedAsString(), \get_class($expected) . ' Object', 0, 5),
-                    \substr_replace($e->getActualAsString(), \get_class($actual) . ' Object', 0, 5),
+                    substr_replace($e->getExpectedAsString(), get_class($expected) . ' Object', 0, 5),
+                    substr_replace($e->getActualAsString(), get_class($actual) . ' Object', 0, 5),
                     false,
                     'Failed asserting that two objects are equal.'
                 );

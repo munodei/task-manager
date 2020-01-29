@@ -3,7 +3,6 @@
 namespace Illuminate\Validation;
 
 use Exception;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
 class ValidationException extends Exception
@@ -47,7 +46,7 @@ class ValidationException extends Exception
      * Create a new exception instance.
      *
      * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @param  \Symfony\Component\HttpFoundation\Response|null  $response
+     * @param  \Symfony\Component\HttpFoundation\Response  $response
      * @param  string  $errorBag
      * @return void
      */
@@ -70,7 +69,7 @@ class ValidationException extends Exception
     {
         return new static(tap(ValidatorFacade::make([], []), function ($validator) use ($messages) {
             foreach ($messages as $key => $value) {
-                foreach (Arr::wrap($value) as $message) {
+                foreach ($value as $message) {
                     $validator->errors()->add($key, $message);
                 }
             }

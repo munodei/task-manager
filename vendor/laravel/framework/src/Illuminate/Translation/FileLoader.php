@@ -2,9 +2,8 @@
 
 namespace Illuminate\Translation;
 
-use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Filesystem\Filesystem;
-use RuntimeException;
+use Illuminate\Contracts\Translation\Loader;
 
 class FileLoader implements Loader
 {
@@ -25,7 +24,7 @@ class FileLoader implements Loader
     /**
      * All of the registered paths to JSON translation files.
      *
-     * @var array
+     * @var string
      */
     protected $jsonPaths = [];
 
@@ -54,16 +53,16 @@ class FileLoader implements Loader
      *
      * @param  string  $locale
      * @param  string  $group
-     * @param  string|null  $namespace
+     * @param  string  $namespace
      * @return array
      */
     public function load($locale, $group, $namespace = null)
     {
-        if ($group === '*' && $namespace === '*') {
+        if ($group == '*' && $namespace == '*') {
             return $this->loadJsonPaths($locale);
         }
 
-        if (is_null($namespace) || $namespace === '*') {
+        if (is_null($namespace) || $namespace == '*') {
             return $this->loadPath($this->path, $locale, $group);
         }
 
@@ -131,24 +130,15 @@ class FileLoader implements Loader
      *
      * @param  string  $locale
      * @return array
-     *
-     * @throws \RuntimeException
      */
     protected function loadJsonPaths($locale)
     {
         return collect(array_merge($this->jsonPaths, [$this->path]))
             ->reduce(function ($output, $path) use ($locale) {
-                if ($this->files->exists($full = "{$path}/{$locale}.json")) {
-                    $decoded = json_decode($this->files->get($full), true);
-
-                    if (is_null($decoded) || json_last_error() !== JSON_ERROR_NONE) {
-                        throw new RuntimeException("Translation file [{$full}] contains an invalid JSON structure.");
-                    }
-
-                    $output = array_merge($output, $decoded);
-                }
-
-                return $output;
+                return $this->files->exists($full = "{$path}/{$locale}.json")
+                    ? array_merge($output,
+                        json_decode($this->files->get($full), true)
+                    ) : $output;
             }, []);
     }
 

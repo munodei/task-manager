@@ -48,7 +48,7 @@ class HasInDatabase extends Constraint
      * @param  string  $table
      * @return bool
      */
-    public function matches($table): bool
+    public function matches($table)
     {
         return $this->database->table($table)->where($this->data)->count() > 0;
     }
@@ -59,7 +59,7 @@ class HasInDatabase extends Constraint
      * @param  string  $table
      * @return string
      */
-    public function failureDescription($table): string
+    public function failureDescription($table)
     {
         return sprintf(
             "a row in the table [%s] matches the attributes %s.\n\n%s",
@@ -75,18 +75,16 @@ class HasInDatabase extends Constraint
      */
     protected function getAdditionalInfo($table)
     {
-        $query = $this->database->table($table);
-
-        $results = $query->limit($this->show)->get();
+        $results = $this->database->table($table)->get();
 
         if ($results->isEmpty()) {
             return 'The table is empty';
         }
 
-        $description = 'Found: '.json_encode($results, JSON_PRETTY_PRINT);
+        $description = 'Found: '.json_encode($results->take($this->show), JSON_PRETTY_PRINT);
 
-        if ($query->count() > $this->show) {
-            $description .= sprintf(' and %s others', $query->count() - $this->show);
+        if ($results->count() > $this->show) {
+            $description .= sprintf(' and %s others', $results->count() - $this->show);
         }
 
         return $description;
@@ -98,7 +96,7 @@ class HasInDatabase extends Constraint
      * @param  int  $options
      * @return string
      */
-    public function toString($options = 0): string
+    public function toString($options = 0)
     {
         return json_encode($this->data, $options);
     }

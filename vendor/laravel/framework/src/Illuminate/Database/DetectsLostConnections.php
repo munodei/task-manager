@@ -2,18 +2,18 @@
 
 namespace Illuminate\Database;
 
+use Exception;
 use Illuminate\Support\Str;
-use Throwable;
 
 trait DetectsLostConnections
 {
     /**
      * Determine if the given exception was caused by a lost connection.
      *
-     * @param  \Throwable  $e
+     * @param  \Exception  $e
      * @return bool
      */
-    protected function causedByLostConnection(Throwable $e)
+    protected function causedByLostConnection(Exception $e)
     {
         $message = $e->getMessage();
 
@@ -30,16 +30,6 @@ trait DetectsLostConnections
             'Resource deadlock avoided',
             'Transaction() on null',
             'child connection forced to terminate due to client_idle_limit',
-            'query_wait_timeout',
-            'reset by peer',
-            'Physical connection is not usable',
-            'TCP Provider: Error code 0x68',
-            'ORA-03114',
-            'Packets out of order. Expected',
-            'Adaptive Server connection failed',
-            'Communication link failure',
-            'connection is no longer usable',
-            'Login timeout expired',
         ]);
     }
 }

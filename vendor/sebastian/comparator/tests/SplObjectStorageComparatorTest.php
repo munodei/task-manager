@@ -1,33 +1,30 @@
 <?php
 /*
- * This file is part of sebastian/comparator.
+ * This file is part of the Comparator package.
  *
  * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace SebastianBergmann\Comparator;
 
-use PHPUnit\Framework\TestCase;
 use SplObjectStorage;
 use stdClass;
+use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \SebastianBergmann\Comparator\SplObjectStorageComparator<extended>
- *
- * @uses \SebastianBergmann\Comparator\Comparator
- * @uses \SebastianBergmann\Comparator\Factory
- * @uses \SebastianBergmann\Comparator\ComparisonFailure
+ * @coversDefaultClass SebastianBergmann\Comparator\SplObjectStorageComparator
+ * @uses SebastianBergmann\Comparator\Comparator
+ * @uses SebastianBergmann\Comparator\Factory
+ * @uses SebastianBergmann\Comparator\ComparisonFailure
  */
-final class SplObjectStorageComparatorTest extends TestCase
+class SplObjectStorageComparatorTest extends TestCase
 {
-    /**
-     * @var SplObjectStorageComparator
-     */
     private $comparator;
 
-    protected function setUp(): void
+    protected function setUp()
     {
         $this->comparator = new SplObjectStorageComparator;
     }
@@ -35,9 +32,9 @@ final class SplObjectStorageComparatorTest extends TestCase
     public function acceptsFailsProvider()
     {
         return [
-            [new SplObjectStorage, new stdClass],
-            [new stdClass, new SplObjectStorage],
-            [new stdClass, new stdClass]
+          [new SplObjectStorage, new stdClass],
+          [new stdClass, new SplObjectStorage],
+          [new stdClass, new stdClass]
         ];
     }
 
@@ -58,10 +55,10 @@ final class SplObjectStorageComparatorTest extends TestCase
         $storage4->attach($object1);
 
         return [
-            [$storage1, $storage1],
-            [$storage1, $storage2],
-            [$storage3, $storage3],
-            [$storage3, $storage4]
+          [$storage1, $storage1],
+          [$storage1, $storage2],
+          [$storage3, $storage3],
+          [$storage3, $storage4]
         ];
     }
 
@@ -80,13 +77,16 @@ final class SplObjectStorageComparatorTest extends TestCase
         $storage3->attach($object1);
 
         return [
-            [$storage1, $storage2],
-            [$storage1, $storage3],
-            [$storage2, $storage3],
+          [$storage1, $storage2],
+          [$storage1, $storage3],
+          [$storage2, $storage3],
         ];
     }
 
-    public function testAcceptsSucceeds(): void
+    /**
+     * @covers  ::accepts
+     */
+    public function testAcceptsSucceeds()
     {
         $this->assertTrue(
           $this->comparator->accepts(
@@ -97,9 +97,10 @@ final class SplObjectStorageComparatorTest extends TestCase
     }
 
     /**
+     * @covers       ::accepts
      * @dataProvider acceptsFailsProvider
      */
-    public function testAcceptsFails($expected, $actual): void
+    public function testAcceptsFails($expected, $actual)
     {
         $this->assertFalse(
           $this->comparator->accepts($expected, $actual)
@@ -107,9 +108,10 @@ final class SplObjectStorageComparatorTest extends TestCase
     }
 
     /**
+     * @covers       ::assertEquals
      * @dataProvider assertEqualsSucceedsProvider
      */
-    public function testAssertEqualsSucceeds($expected, $actual): void
+    public function testAssertEqualsSucceeds($expected, $actual)
     {
         $exception = null;
 
@@ -122,9 +124,10 @@ final class SplObjectStorageComparatorTest extends TestCase
     }
 
     /**
+     * @covers       ::assertEquals
      * @dataProvider assertEqualsFailsProvider
      */
-    public function testAssertEqualsFails($expected, $actual): void
+    public function testAssertEqualsFails($expected, $actual)
     {
         $this->expectException(ComparisonFailure::class);
         $this->expectExceptionMessage('Failed asserting that two objects are equal.');
@@ -132,7 +135,7 @@ final class SplObjectStorageComparatorTest extends TestCase
         $this->comparator->assertEquals($expected, $actual);
     }
 
-    public function testAssertEqualsFails2(): void
+    public function testAssertEqualsFails2()
     {
         $this->expectException(ComparisonFailure::class);
         $this->expectExceptionMessage('Failed asserting that two objects are equal.');

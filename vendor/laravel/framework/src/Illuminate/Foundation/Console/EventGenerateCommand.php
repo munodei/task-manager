@@ -2,9 +2,9 @@
 
 namespace Illuminate\Foundation\Console;
 
+use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider;
-use Illuminate\Support\Str;
 
 class EventGenerateCommand extends Command
 {
@@ -29,12 +29,10 @@ class EventGenerateCommand extends Command
      */
     public function handle()
     {
-        $providers = $this->laravel->getProviders(EventServiceProvider::class);
+        $provider = $this->laravel->getProvider(EventServiceProvider::class);
 
-        foreach ($providers as $provider) {
-            foreach ($provider->listens() as $event => $listeners) {
-                $this->makeEventAndListeners($event, $listeners);
-            }
+        foreach ($provider->listens() as $event => $listeners) {
+            $this->makeEventAndListeners($event, $listeners);
         }
 
         $this->info('Events and listeners generated successfully!');

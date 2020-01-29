@@ -3,19 +3,19 @@
 namespace Illuminate\Foundation\Testing\Concerns;
 
 use Exception;
-use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 trait InteractsWithExceptionHandling
 {
     /**
-     * The original exception handler.
+     * The previous exception handler.
      *
-     * @var \Illuminate\Contracts\Debug\ExceptionHandler|null
+     * @var ExceptionHandler|null
      */
-    protected $originalExceptionHandler;
+    protected $previousExceptionHandler;
 
     /**
      * Restore exception handling.
@@ -24,8 +24,8 @@ trait InteractsWithExceptionHandling
      */
     protected function withExceptionHandling()
     {
-        if ($this->originalExceptionHandler) {
-            $this->app->instance(ExceptionHandler::class, $this->originalExceptionHandler);
+        if ($this->previousExceptionHandler) {
+            $this->app->instance(ExceptionHandler::class, $this->previousExceptionHandler);
         }
 
         return $this;
@@ -60,25 +60,23 @@ trait InteractsWithExceptionHandling
      */
     protected function withoutExceptionHandling(array $except = [])
     {
-        if ($this->originalExceptionHandler == null) {
-            $this->originalExceptionHandler = app(ExceptionHandler::class);
-        }
+        $this->previousExceptionHandler = app(ExceptionHandler::class);
 
-        $this->app->instance(ExceptionHandler::class, new class($this->originalExceptionHandler, $except) implements ExceptionHandler {
+        $this->app->instance(ExceptionHandler::class, new class($this->previousExceptionHandler, $except) implements ExceptionHandler {
             protected $except;
-            protected $originalHandler;
+            protected $previousHandler;
 
             /**
              * Create a new class instance.
              *
-             * @param  \Illuminate\Contracts\Debug\ExceptionHandler  $originalHandler
+             * @param \Illuminate\Contracts\Debug\ExceptionHandler
              * @param  array  $except
              * @return void
              */
-            public function __construct($originalHandler, $except = [])
+            public function __construct($previousHandler, $except = [])
             {
                 $this->except = $except;
-                $this->originalHandler = $originalHandler;
+                $this->previousHandler = $previousHandler;
             }
 
             /**
@@ -93,17 +91,6 @@ trait InteractsWithExceptionHandling
             }
 
             /**
-             * Determine if the exception should be reported.
-             *
-             * @param  \Exception  $e
-             * @return bool
-             */
-            public function shouldReport(Exception $e)
-            {
-                return false;
-            }
-
-            /**
              * Render the given exception.
              *
              * @param  \Illuminate\Http\Request  $request
@@ -114,16 +101,16 @@ trait InteractsWithExceptionHandling
              */
             public function render($request, Exception $e)
             {
-                foreach ($this->except as $class) {
-                    if ($e instanceof $class) {
-                        return $this->originalHandler->render($request, $e);
-                    }
-                }
-
                 if ($e instanceof NotFoundHttpException) {
                     throw new NotFoundHttpException(
                         "{$request->method()} {$request->url()}", null, $e->getCode()
                     );
+                }
+
+                foreach ($this->except as $class) {
+                    if ($e instanceof $class) {
+                        return $this->previousHandler->render($request, $e);
+                    }
                 }
 
                 throw $e;
@@ -132,7 +119,7 @@ trait InteractsWithExceptionHandling
             /**
              * Render the exception for the console.
              *
-             * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+             * @param  \Symfony\Component\Console\Output\OutputInterface
              * @param  \Exception  $e
              * @return void
              */

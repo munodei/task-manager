@@ -16,7 +16,7 @@ abstract class Controller
     /**
      * Register middleware on the controller.
      *
-     * @param  \Closure|array|string  $middleware
+     * @param  array|string|\Closure  $middleware
      * @param  array   $options
      * @return \Illuminate\Routing\ControllerMiddlewareOptions
      */
@@ -65,8 +65,6 @@ abstract class Controller
      */
     public function __call($method, $parameters)
     {
-        throw new BadMethodCallException(sprintf(
-            'Method %s::%s does not exist.', static::class, $method
-        ));
+        throw new BadMethodCallException("Method [{$method}] does not exist.");
     }
 }

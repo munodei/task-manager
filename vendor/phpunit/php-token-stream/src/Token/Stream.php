@@ -169,7 +169,6 @@ class PHP_Token_Stream implements ArrayAccess, Countable, SeekableIterator
                     $name = 'CLASS_NAME_CONSTANT';
                 } elseif ($name == 'USE' && isset($tokens[$i + 2][0]) && $tokens[$i + 2][0] == T_FUNCTION) {
                     $name = 'USE_FUNCTION';
-                    $text .= $tokens[$i + 1][1] . $tokens[$i + 2][1];
                     $skip = 2;
                 }
 
@@ -303,7 +302,7 @@ class PHP_Token_Stream implements ArrayAccess, Countable, SeekableIterator
             ];
 
             foreach ($this->tokens as $token) {
-                switch (PHP_Token_Util::getClass($token)) {
+                switch (get_class($token)) {
                     case 'PHP_Token_REQUIRE_ONCE':
                     case 'PHP_Token_REQUIRE':
                     case 'PHP_Token_INCLUDE_ONCE':
@@ -358,7 +357,7 @@ class PHP_Token_Stream implements ArrayAccess, Countable, SeekableIterator
         $interfaceEndLine = false;
 
         foreach ($this->tokens as $token) {
-            switch (PHP_Token_Util::getClass($token)) {
+            switch (get_class($token)) {
                 case 'PHP_Token_HALT_COMPILER':
                     return;
 
@@ -392,17 +391,15 @@ class PHP_Token_Stream implements ArrayAccess, Countable, SeekableIterator
                       'file'      => $this->filename
                     ];
 
-                    if ($token->getName() !== null) {
-                        if ($token instanceof PHP_Token_CLASS) {
-                            $class[]        = $token->getName();
-                            $classEndLine[] = $token->getEndLine();
+                    if ($token instanceof PHP_Token_CLASS) {
+                        $class[]        = $token->getName();
+                        $classEndLine[] = $token->getEndLine();
 
-                            $this->classes[$class[count($class) - 1]] = $tmp;
-                        } else {
-                            $trait                = $token->getName();
-                            $traitEndLine         = $token->getEndLine();
-                            $this->traits[$trait] = $tmp;
-                        }
+                        $this->classes[$class[count($class) - 1]] = $tmp;
+                    } else {
+                        $trait                = $token->getName();
+                        $traitEndLine         = $token->getEndLine();
+                        $this->traits[$trait] = $tmp;
                     }
                     break;
 

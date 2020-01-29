@@ -12,9 +12,8 @@
 namespace Symfony\Component\HttpKernel\Tests\EventListener;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\EventListener\AddRequestFormatsListener;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -29,12 +28,12 @@ class AddRequestFormatsListenerTest extends TestCase
      */
     private $listener;
 
-    protected function setUp(): void
+    protected function setUp()
     {
-        $this->listener = new AddRequestFormatsListener(['csv' => ['text/csv', 'text/plain']]);
+        $this->listener = new AddRequestFormatsListener(array('csv' => array('text/csv', 'text/plain')));
     }
 
-    protected function tearDown(): void
+    protected function tearDown()
     {
         $this->listener = null;
     }
@@ -47,7 +46,7 @@ class AddRequestFormatsListenerTest extends TestCase
     public function testRegisteredEvent()
     {
         $this->assertEquals(
-            [KernelEvents::REQUEST => ['onKernelRequest', 100]],
+            array(KernelEvents::REQUEST => array('onKernelRequest', 1)),
             AddRequestFormatsListener::getSubscribedEvents()
         );
     }
@@ -55,11 +54,11 @@ class AddRequestFormatsListenerTest extends TestCase
     public function testSetAdditionalFormats()
     {
         $request = $this->getRequestMock();
-        $event = $this->getRequestEventMock($request);
+        $event = $this->getGetResponseEventMock($request);
 
         $request->expects($this->once())
             ->method('setFormat')
-            ->with('csv', ['text/csv', 'text/plain']);
+            ->with('csv', array('text/csv', 'text/plain'));
 
         $this->listener->onKernelRequest($event);
     }
@@ -69,16 +68,16 @@ class AddRequestFormatsListenerTest extends TestCase
         return $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')->getMock();
     }
 
-    protected function getRequestEventMock(Request $request)
+    protected function getGetResponseEventMock(Request $request)
     {
         $event = $this
-            ->getMockBuilder(RequestEvent::class)
+            ->getMockBuilder('Symfony\Component\HttpKernel\Event\GetResponseEvent')
             ->disableOriginalConstructor()
             ->getMock();
 
         $event->expects($this->any())
             ->method('getRequest')
-            ->willReturn($request);
+            ->will($this->returnValue($request));
 
         return $event;
     }

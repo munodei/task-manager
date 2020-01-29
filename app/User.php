@@ -14,7 +14,17 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $guarded = [];
+    protected $fillable = [
+        'name', 
+        'email', 
+        'password',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'city',
+        'role_id'
+    ];
+
     /**
      * The attributes that should be hidden for arrays.
      *
@@ -24,89 +34,32 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
-    public function country(){
-        return $this->belongsTo(Country::class);
+  
+    
+    public function role(){
+		return $this->belongsTo('App\Role');
     }
 
-    /**
-     * @param int $s
-     * @param string $d
-     * @param string $r
-     * @param bool $img
-     * @param array $atts
-     * @return string
-     */
-    public function get_gravatar( $s = 40, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
-        $parse_url = parse_url($this->photo);
-        $url = '';
-        $email = $this->email;
-
-        if ( ! empty($parse_url['scheme'])) {
-            $url = $this->photo;
-        }else{
-            $url = 'http://www.gravatar.com/avatar/';
-            $url .= md5(strtolower(trim($email)));
-            $url .= "?s=$s&d=$d&r=$r";
-
-            if (!empty($this->photo)) {
-                $url = avatar_img_url($this->photo, $this->photo_storage);
-            }
-
-            if ($img) {
-                $url = '<img src="' . $url . '"';
-                foreach ($atts as $key => $val)
-                    $url .= ' ' . $key . '="' . $val . '"';
-                $url .= ' />';
-            }
-        }
-        return $url;
+    public function companies(){
+		return $this->hasMany('App\Company');
     }
+    
 
-    public function get_address(){
-        $address = '';
-
-        if ($this->country){
-            $address .= $this->country->country_name.', ';
-        }
-        if ( ! empty($this->address)){
-            $address .= $this->address;
-        }
-        return $address;
+    public function tasks()
+    {
+        return $this->belongsToMany('App\Task');
     }
 
 
-
-    public function signed_up_datetime(){
-        $created_date_time = false;
-        if ($this->created_at){
-            $created_date_time = $this->created_at->timezone(get_option('default_timezone'))->format(get_option('date_format_custom').' '.get_option('time_format_custom'));
-        }
-        return $created_date_time;
+    //many to many relationship
+    public function projects()
+    {
+        return $this->belongsToMany('App\Project');
     }
 
-    public function status_context(){
-        $status = $this->active_status;
-
-        $context = '';
-        switch ($status){
-            case '0':
-                $context = 'Pending';
-                break;
-            case '1':
-                $context = 'Active';
-                break;
-            case '2':
-                $context = 'Block';
-                break;
-        }
-        return $context;
-    }
-
-    public function is_admin(){
-        if ($this->user_type == 'admin'){
-            return true;
-        }
-        return false;
+    public function comments()
+    {
+        return $this->morphMany('App\Comment', 'commentable');
     }
 
 }

@@ -2,12 +2,11 @@
 
 namespace Illuminate\Cache;
 
-use Illuminate\Contracts\Cache\LockProvider;
-use Illuminate\Support\InteractsWithTime;
+use Illuminate\Contracts\Cache\Store;
 
-class ArrayStore extends TaggableStore implements LockProvider
+class ArrayStore extends TaggableStore implements Store
 {
-    use InteractsWithTime, RetrievesMultipleKeys;
+    use RetrievesMultipleKeys;
 
     /**
      * The array of stored values.
@@ -17,13 +16,6 @@ class ArrayStore extends TaggableStore implements LockProvider
     protected $storage = [];
 
     /**
-     * The array of locks.
-     *
-     * @var array
-     */
-    public $locks = [];
-
-    /**
      * Retrieve an item from the cache by key.
      *
      * @param  string|array  $key
@@ -31,39 +23,22 @@ class ArrayStore extends TaggableStore implements LockProvider
      */
     public function get($key)
     {
-        if (! isset($this->storage[$key])) {
-            return;
+        if (array_key_exists($key, $this->storage)) {
+            return $this->storage[$key];
         }
-
-        $item = $this->storage[$key];
-
-        $expiresAt = $item['expiresAt'] ?? 0;
-
-        if ($expiresAt !== 0 && $this->currentTime() > $expiresAt) {
-            $this->forget($key);
-
-            return;
-        }
-
-        return $item['value'];
     }
 
     /**
-     * Store an item in the cache for a given number of seconds.
+     * Store an item in the cache for a given number of minutes.
      *
      * @param  string  $key
      * @param  mixed   $value
-     * @param  int  $seconds
-     * @return bool
+     * @param  float|int  $minutes
+     * @return void
      */
-    public function put($key, $value, $seconds)
+    public function put($key, $value, $minutes)
     {
-        $this->storage[$key] = [
-            'value' => $value,
-            'expiresAt' => $this->calculateExpiration($seconds),
-        ];
-
-        return true;
+        $this->storage[$key] = $value;
     }
 
     /**
@@ -75,15 +50,10 @@ class ArrayStore extends TaggableStore implements LockProvider
      */
     public function increment($key, $value = 1)
     {
-        if (! isset($this->storage[$key])) {
-            $this->forever($key, $value);
+        $this->storage[$key] = ! isset($this->storage[$key])
+                ? $value : ((int) $this->storage[$key]) + $value;
 
-            return $this->storage[$key]['value'];
-        }
-
-        $this->storage[$key]['value'] = ((int) $this->storage[$key]['value']) + $value;
-
-        return $this->storage[$key]['value'];
+        return $this->storage[$key];
     }
 
     /**
@@ -103,11 +73,11 @@ class ArrayStore extends TaggableStore implements LockProvider
      *
      * @param  string  $key
      * @param  mixed   $value
-     * @return bool
+     * @return void
      */
     public function forever($key, $value)
     {
-        return $this->put($key, $value, 0);
+        $this->put($key, $value, 0);
     }
 
     /**
@@ -118,13 +88,9 @@ class ArrayStore extends TaggableStore implements LockProvider
      */
     public function forget($key)
     {
-        if (array_key_exists($key, $this->storage)) {
-            unset($this->storage[$key]);
+        unset($this->storage[$key]);
 
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     /**
@@ -147,52 +113,5 @@ class ArrayStore extends TaggableStore implements LockProvider
     public function getPrefix()
     {
         return '';
-    }
-
-    /**
-     * Get the expiration time of the key.
-     *
-     * @param  int  $seconds
-     * @return int
-     */
-    protected function calculateExpiration($seconds)
-    {
-        return $this->toTimestamp($seconds);
-    }
-
-    /**
-     * Get the UNIX timestamp for the given number of seconds.
-     *
-     * @param  int  $seconds
-     * @return int
-     */
-    protected function toTimestamp($seconds)
-    {
-        return $seconds > 0 ? $this->availableAt($seconds) : 0;
-    }
-
-    /**
-     * Get a lock instance.
-     *
-     * @param  string $name
-     * @param  int $seconds
-     * @param  string|null $owner
-     * @return \Illuminate\Contracts\Cache\Lock
-     */
-    public function lock($name, $seconds = 0, $owner = null)
-    {
-        return new ArrayLock($this, $name, $seconds, $owner);
-    }
-
-    /**
-     * Restore a lock instance using the owner identifier.
-     *
-     * @param  string  $name
-     * @param  string  $owner
-     * @return \Illuminate\Contracts\Cache\Lock
-     */
-    public function restoreLock($name, $owner)
-    {
-        return $this->lock($name, 0, $owner);
     }
 }

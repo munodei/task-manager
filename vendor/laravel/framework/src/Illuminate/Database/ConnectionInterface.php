@@ -9,11 +9,10 @@ interface ConnectionInterface
     /**
      * Begin a fluent query against a database table.
      *
-     * @param  \Closure|\Illuminate\Database\Query\Builder|string  $table
-     * @param  string|null  $as
+     * @param  string  $table
      * @return \Illuminate\Database\Query\Builder
      */
-    public function table($table, $as = null);
+    public function table($table);
 
     /**
      * Get a new raw query expression.
@@ -28,30 +27,18 @@ interface ConnectionInterface
      *
      * @param  string  $query
      * @param  array   $bindings
-     * @param  bool  $useReadPdo
      * @return mixed
      */
-    public function selectOne($query, $bindings = [], $useReadPdo = true);
+    public function selectOne($query, $bindings = []);
 
     /**
      * Run a select statement against the database.
      *
      * @param  string  $query
      * @param  array   $bindings
-     * @param  bool  $useReadPdo
      * @return array
      */
-    public function select($query, $bindings = [], $useReadPdo = true);
-
-    /**
-     * Run a select statement against the database and returns a generator.
-     *
-     * @param  string  $query
-     * @param  array  $bindings
-     * @param  bool  $useReadPdo
-     * @return \Generator
-     */
-    public function cursor($query, $bindings = [], $useReadPdo = true);
+    public function select($query, $bindings = []);
 
     /**
      * Run an insert statement against the database.

@@ -32,13 +32,13 @@ class CliDumperTest extends TestCase
         $dumper = new CliDumper('php://output');
         $dumper->setColors(false);
         $cloner = new VarCloner();
-        $cloner->addCasters([
+        $cloner->addCasters(array(
             ':stream' => function ($res, $a) {
                 unset($a['uri'], $a['wrapper_data']);
 
                 return $a;
             },
-        ]);
+        ));
         $data = $cloner->cloneVar($var);
 
         ob_start();
@@ -48,6 +48,7 @@ class CliDumperTest extends TestCase
         $intMax = PHP_INT_MAX;
         $res = (int) $var['res'];
 
+        $r = defined('HHVM_VERSION') ? '' : '#%d';
         $this->assertStringMatchesFormat(
             <<<EOTXT
 array:24 [
@@ -61,10 +62,7 @@ array:24 [
   5 => -INF
   6 => {$intMax}
   "str" => "déjà\\n"
-  7 => b"""
-    é\\x00test\\t\\n
-    ing
-    """
+  7 => b"é\\x00"
   "[]" => []
   "res" => stream resource {@{$res}
 %A  wrapper_type: "plainfile"
@@ -78,10 +76,17 @@ array:24 [
     +foo: "foo"
     +"bar": "bar"
   }
-  "closure" => Closure(\$a, PDO &\$b = null) {#%d
+  "closure" => Closure {{$r}
     class: "Symfony\Component\VarDumper\Tests\Dumper\CliDumperTest"
-    this: Symfony\Component\VarDumper\Tests\Dumper\CliDumperTest {#%d …}
-    file: "%s%eTests%eFixtures%edumb-var.php"
+    this: Symfony\Component\VarDumper\Tests\Dumper\CliDumperTest {{$r} …}
+    parameters: {
+      \$a: {}
+      &\$b: {
+        typeHint: "PDO"
+        default: null
+      }
+    }
+    file: "{$var['file']}"
     line: "{$var['line']} to {$var['line']}"
   }
   "line" => {$var['line']}
@@ -114,45 +119,15 @@ EOTXT
         $dumper->setColors(false);
         $cloner = new VarCloner();
 
-        $var = [
-            'array' => ['a', 'b'],
+        $var = array(
+            'array' => array('a', 'b'),
             'string' => 'hello',
             'multiline string' => "this\nis\na\multiline\nstring",
-        ];
+        );
 
         $dump = $dumper->dump($cloner->cloneVar($var), true);
 
         $this->assertSame($expected, $dump);
-    }
-
-    public function testDumpWithCommaFlagsAndExceptionCodeExcerpt()
-    {
-        $dumper = new CliDumper(null, null, CliDumper::DUMP_TRAILING_COMMA);
-        $dumper->setColors(false);
-        $cloner = new VarCloner();
-
-        $ex = new \RuntimeException('foo');
-
-        $dump = $dumper->dump($cloner->cloneVar($ex)->withRefHandles(false), true);
-
-        $this->assertStringMatchesFormat(<<<'EOTXT'
-RuntimeException {
-  #message: "foo"
-  #code: 0
-  #file: "%ACliDumperTest.php"
-  #line: %d
-  trace: {
-    %ACliDumperTest.php:%d {
-      › 
-      › $ex = new \RuntimeException('foo');
-      › 
-    }
-    %A
-  }
-}
-
-EOTXT
-            , $dump);
     }
 
     public function provideDumpWithCommaFlagTests()
@@ -174,7 +149,7 @@ array:3 [
 
 EOTXT;
 
-        yield [$expected, CliDumper::DUMP_COMMA_SEPARATOR];
+        yield array($expected, CliDumper::DUMP_COMMA_SEPARATOR);
 
         $expected = <<<'EOTXT'
 array:3 [
@@ -193,7 +168,7 @@ array:3 [
 
 EOTXT;
 
-        yield [$expected, CliDumper::DUMP_TRAILING_COMMA];
+        yield array($expected, CliDumper::DUMP_TRAILING_COMMA);
     }
 
     /**
@@ -256,7 +231,7 @@ EOTXT
 
     public function testObjectCast()
     {
-        $var = (object) [1 => 1];
+        $var = (object) array(1 => 1);
         $var->{1} = 2;
 
         if (\PHP_VERSION_ID >= 70200) {
@@ -285,6 +260,10 @@ EOTXT
 
     public function testClosedResource()
     {
+        if (defined('HHVM_VERSION') && HHVM_VERSION_ID < 30600) {
+            $this->markTestSkipped();
+        }
+
         $var = fopen(__FILE__, 'r');
         fclose($var);
 
@@ -313,10 +292,10 @@ EOTXT
         putenv('DUMP_LIGHT_ARRAY=1');
         putenv('DUMP_STRING_LENGTH=1');
 
-        $var = [
+        $var = array(
             range(1, 3),
-            ['foo', 2 => 'bar'],
-        ];
+            array('foo', 2 => 'bar'),
+        );
 
         $this->assertDumpEquals(
             <<<EOTXT
@@ -353,44 +332,59 @@ EOTXT
         $dumper = new CliDumper();
         $dumper->setColors(false);
         $cloner = new VarCloner();
-        $cloner->addCasters([
+        $cloner->addCasters(array(
             ':stream' => function ($res, $a) {
                 unset($a['wrapper_data']);
 
                 return $a;
             },
-        ]);
-        $cloner->addCasters([
+        ));
+        $cloner->addCasters(array(
             ':stream' => eval('return function () use ($twig) {
                 try {
-                    $twig->render([]);
+                    $twig->render(array());
                 } catch (\Twig\Error\RuntimeError $e) {
                     throw $e->getPrevious();
                 }
             };'),
-        ]);
+        ));
         $ref = (int) $out;
 
         $data = $cloner->cloneVar($out);
         $dumper->dump($data, $out);
         $out = stream_get_contents($out, -1, 0);
 
+        $r = defined('HHVM_VERSION') ? '' : '#%d';
         $this->assertStringMatchesFormat(
             <<<EOTXT
 stream resource {@{$ref}
-  ⚠: Symfony\Component\VarDumper\Exception\ThrowingCasterException {#%d
+  ⚠: Symfony\Component\VarDumper\Exception\ThrowingCasterException {{$r}
     #message: "Unexpected Exception thrown from a caster: Foobar"
     trace: {
-      %sTwig.php:2 {
-        › foo bar
-        ›   twig source
-        › 
+      %sTwig.php:2: {
+        : foo bar
+        :   twig source
+        : 
       }
-      %s%eTemplate.php:%d { …}
-      %s%eTemplate.php:%d { …}
-      %s%eTemplate.php:%d { …}
-      %s%eTests%eDumper%eCliDumperTest.php:%d { …}
-%A  }
+      %sTemplate.php:%d: {
+        : try {
+        :     \$this->doDisplay(\$context, \$blocks);
+        : } catch (Twig%sError \$e) {
+      }
+      %sTemplate.php:%d: {
+        : {
+        :     \$this->displayWithErrorHandling(\$this->env->mergeGlobals(\$context), array_merge(\$this->blocks, \$blocks));
+        : }
+      }
+      %sTemplate.php:%d: {
+        : try {
+        :     \$this->display(\$context);
+        : } catch (%s \$e) {
+      }
+      %sCliDumperTest.php:%d: {
+%A
+      }
+    }
   }
 %Awrapper_type: "PHP"
   stream_type: "MEMORY"
@@ -409,7 +403,7 @@ EOTXT
 
     public function testRefsInProperties()
     {
-        $var = (object) ['foo' => 'foo'];
+        $var = (object) array('foo' => 'foo');
         $var->bar = &$var->foo;
 
         $dumper = new CliDumper();
@@ -419,9 +413,10 @@ EOTXT
         $data = $cloner->cloneVar($var);
         $out = $dumper->dump($data, true);
 
+        $r = defined('HHVM_VERSION') ? '' : '#%d';
         $this->assertStringMatchesFormat(
             <<<EOTXT
-{#%d
+{{$r}
   +"foo": &1 "foo"
   +"bar": &1 "foo"
 }
@@ -435,6 +430,7 @@ EOTXT
     /**
      * @runInSeparateProcess
      * @preserveGlobalState disabled
+     * @requires PHP 5.6
      */
     public function testSpecialVars56()
     {
@@ -465,7 +461,7 @@ EOTXT
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
-    public function testGlobals()
+    public function testGlobalsNoExt()
     {
         $var = $this->getSpecialVars();
         unset($var[0]);
@@ -479,6 +475,10 @@ EOTXT
         $dumper->setColors(false);
         $cloner = new VarCloner();
 
+        $refl = new \ReflectionProperty($cloner, 'useExt');
+        $refl->setAccessible(true);
+        $refl->setValue($cloner, false);
+
         $data = $cloner->cloneVar($var);
         $dumper->dump($data);
 
@@ -491,6 +491,47 @@ array:2 [
     ]
   ]
   2 => &1 array:1 [&1]
+]
+
+EOTXT
+            ,
+            $out
+        );
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testBuggyRefs()
+    {
+        if (\PHP_VERSION_ID >= 50600) {
+            $this->markTestSkipped('PHP 5.6 fixed refs counting');
+        }
+
+        $var = $this->getSpecialVars();
+        $var = $var[0];
+
+        $dumper = new CliDumper();
+        $dumper->setColors(false);
+        $cloner = new VarCloner();
+
+        $data = $cloner->cloneVar($var)->withMaxDepth(3);
+        $out = '';
+        $dumper->dump($data, function ($line, $depth) use (&$out) {
+            if ($depth >= 0) {
+                $out .= str_repeat('  ', $depth).$line."\n";
+            }
+        });
+
+        $this->assertSame(
+            <<<'EOTXT'
+array:1 [
+  0 => array:1 [
+    0 => array:1 [
+      0 => array:1 [ …1]
+    ]
+  ]
 ]
 
 EOTXT
@@ -523,12 +564,12 @@ EOTXT
         }
 
         $var = function &() {
-            $var = [];
+            $var = array();
             $var[] = &$var;
 
             return $var;
         };
 
-        return [$var(), $GLOBALS, &$GLOBALS];
+        return array($var(), $GLOBALS, &$GLOBALS);
     }
 }

@@ -1,94 +1,69 @@
-@extends('layouts.theme')
+@extends('layouts.app')
 
 @section('content')
-<!-- Titlebar
-================================================== -->
-<div id="titlebar" class="gradient">
-	<div class="container">
-		<div class="row">
-			<div class="col-md-12">
-
-				<h2>Log In</h2>
-
-				<!-- Breadcrumbs -->
-				<nav id="breadcrumbs" class="dark">
-					<ul>
-						<li><a href="{{url('/')}}">Home</a></li>
-            	<li><a href="{{route('home')}}">Account</a></li>
-						<li>{{ __('Login') }}</li>
-					</ul>
-				</nav>
-
-			</div>
-		</div>
-	</div>
-</div>
-
-
-<!-- Page Content
-================================================== -->
 <div class="container">
-		@include('includes.messages')
-	<div class="row">
-		<div class="col-xl-5 offset-xl-3">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Login</div>
 
+                <div class="panel-body">
+                    <form class="form-horizontal" method="POST" action="{{ route('login') }}">
+                        {{ csrf_field() }}
 
-			<div class="login-register-page">
-				<!-- Welcome Text -->
-				<div class="welcome-text">
-					<h3>We're glad to see you again!</h3>
-					<span>Don't have an account? <a href="{{url('/')}}/register">Sign Up!</a></span>
-				</div>
+                        <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
+                            <label for="email" class="col-md-4 control-label">E-Mail Address</label>
 
-				<!-- Form -->
-				<form method="post" id="login-form" name="login-form" action="{{ route('login') }}" >
-					{!! csrf_field() !!}
-					<div class="input-with-icon-left">
-						<i class="icon-material-baseline-mail-outline"></i>
-						<input type="text" class="input-text with-border" name="email" id="email" value="{{ old('email') }}" placeholder="Email Address" required/>
-					</div>
+                            <div class="col-md-6">
+                                <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autofocus>
 
-					<div class="input-with-icon-left">
-						<i class="icon-material-outline-lock"></i>
-						<input type="password" class="input-text with-border" name="password" id="password" placeholder="Password" required/>
-					</div>
-          @if (Route::has('password.request'))
-					<a href="{{ route('password.request') }}" class="forgot-password">Forgot Password?</a>
-          @endif
-          &nbsp;  &nbsp;
-      <div class="checkbox">
-				<input type="checkbox" name="remember"  id="chekcbox2" {{ old('remember') ? 'checked' : '' }}>
-				<label for="chekcbox2"><span class="checkbox-icon"></span> {{ __('Remember Me') }}</label>
-			</div>
+                                @if ($errors->has('email'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('email') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
 
+                        <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
+                            <label for="password" class="col-md-4 control-label">Password</label>
 
+                            <div class="col-md-6">
+                                <input id="password" type="password" class="form-control" name="password" required>
 
-				</form>
+                                @if ($errors->has('password'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('password') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
 
-				<!-- Button -->
-				<button class="button full-width button-sliding-icon ripple-effect margin-top-10" type="submit" form="login-form">Log In <i class="icon-material-outline-arrow-right-alt"></i></button>
+                        <div class="form-group">
+                            <div class="col-md-6 col-md-offset-4">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}> Remember Me
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
-				@if(get_option('enable_social_login') == 1)	
-				<!-- Social Login -->
-				<div class="social-login-separator"><span>or</span></div>
-				<div class="social-login-buttons">
-					@if(get_option('enable_facebook_login') == 1)
-					<button class="facebook-login ripple-effect" onclick="event.preventDefault();window.location.href ='{{ route('facebook_redirect') }}';">
-						<i class="icon-brand-facebook-f"></i> Log In via Facebook</button>
-					@endif
-					@if(get_option('enable_twitter_login') == 1)
-					<button class="google-login ripple-effect" onclick="event.preventDefault();window.location.href ='{{ route('twitter_redirect') }}';"><i class="icon-brand-google-plus-g"></i> Log In via Google+</button>
-					@endif
-				</div>
-				@endif
-			</div>
+                        <div class="form-group">
+                            <div class="col-md-8 col-md-offset-4">
+                                <button type="submit" class="btn btn-primary">
+                                    Login
+                                </button>
 
-		</div>
-	</div>
+                                <a class="btn btn-link" href="{{ route('password.request') }}">
+                                    Forgot Your Password?
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-<!-- Spacer -->
-<div class="margin-top-70"></div>
-<!-- Spacer / End-->
 @endsection

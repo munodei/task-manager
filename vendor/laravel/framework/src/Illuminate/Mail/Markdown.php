@@ -2,9 +2,9 @@
 
 namespace Illuminate\Mail;
 
-use Illuminate\Contracts\View\Factory as ViewFactory;
-use Illuminate\Support\HtmlString;
 use Parsedown;
+use Illuminate\Support\HtmlString;
+use Illuminate\Contracts\View\Factory as ViewFactory;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
 class Markdown
@@ -61,12 +61,12 @@ class Markdown
         )->make($view, $data)->render();
 
         return new HtmlString(($inliner ?: new CssToInlineStyles)->convert(
-            $contents, $this->view->make('mail::themes.'.$this->theme, $data)->render()
+            $contents, $this->view->make('mail::themes.'.$this->theme)->render()
         ));
     }
 
     /**
-     * Render the Markdown template into text.
+     * Render the Markdown template into HTML.
      *
      * @param  string  $view
      * @param  array  $data
@@ -77,7 +77,7 @@ class Markdown
         $this->view->flushFinderCache();
 
         $contents = $this->view->replaceNamespace(
-            'mail', $this->textComponentPaths()
+            'mail', $this->markdownComponentPaths()
         )->make($view, $data)->render();
 
         return new HtmlString(
@@ -111,14 +111,14 @@ class Markdown
     }
 
     /**
-     * Get the text component paths.
+     * Get the Markdown component paths.
      *
      * @return array
      */
-    public function textComponentPaths()
+    public function markdownComponentPaths()
     {
         return array_map(function ($path) {
-            return $path.'/text';
+            return $path.'/markdown';
         }, $this->componentPaths());
     }
 

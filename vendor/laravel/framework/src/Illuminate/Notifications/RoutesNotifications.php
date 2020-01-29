@@ -2,8 +2,8 @@
 
 namespace Illuminate\Notifications;
 
-use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Support\Str;
+use Illuminate\Contracts\Notifications\Dispatcher;
 
 trait RoutesNotifications
 {
@@ -19,28 +19,15 @@ trait RoutesNotifications
     }
 
     /**
-     * Send the given notification immediately.
-     *
-     * @param  mixed  $instance
-     * @param  array|null  $channels
-     * @return void
-     */
-    public function notifyNow($instance, array $channels = null)
-    {
-        app(Dispatcher::class)->sendNow($this, $instance, $channels);
-    }
-
-    /**
      * Get the notification routing information for the given driver.
      *
      * @param  string  $driver
-     * @param  \Illuminate\Notifications\Notification|null  $notification
      * @return mixed
      */
-    public function routeNotificationFor($driver, $notification = null)
+    public function routeNotificationFor($driver)
     {
         if (method_exists($this, $method = 'routeNotificationFor'.Str::studly($driver))) {
-            return $this->{$method}($notification);
+            return $this->{$method}();
         }
 
         switch ($driver) {
@@ -48,6 +35,8 @@ trait RoutesNotifications
                 return $this->notifications();
             case 'mail':
                 return $this->email;
+            case 'nexmo':
+                return $this->phone_number;
         }
     }
 }

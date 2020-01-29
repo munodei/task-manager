@@ -1,12 +1,13 @@
 <?php
 /*
- * This file is part of sebastian/comparator.
+ * This file is part of the Comparator package.
  *
  * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace SebastianBergmann\Comparator;
 
 /**
@@ -25,7 +26,7 @@ class DateTimeComparator extends ObjectComparator
     public function accepts($expected, $actual)
     {
         return ($expected instanceof \DateTime || $expected instanceof \DateTimeInterface) &&
-               ($actual instanceof \DateTime || $actual instanceof \DateTimeInterface);
+            ($actual instanceof \DateTime || $actual instanceof \DateTimeInterface);
     }
 
     /**
@@ -38,29 +39,17 @@ class DateTimeComparator extends ObjectComparator
      * @param bool  $ignoreCase   Case is ignored when set to true
      * @param array $processed    List of already processed elements (used to prevent infinite recursion)
      *
-     * @throws \Exception
      * @throws ComparisonFailure
      */
     public function assertEquals($expected, $actual, $delta = 0.0, $canonicalize = false, $ignoreCase = false, array &$processed = [])
     {
-        /** @var \DateTimeInterface $expected */
-        /** @var \DateTimeInterface $actual */
-        $absDelta = \abs($delta);
-        $delta    = new \DateInterval(\sprintf('PT%dS', $absDelta));
-        $delta->f = $absDelta - \floor($absDelta);
+        $delta = new \DateInterval(sprintf('PT%sS', abs($delta)));
 
-        $actualClone = (clone $actual)
-            ->setTimezone(new \DateTimeZone('UTC'));
+        $expectedLower = clone $expected;
+        $expectedUpper = clone $expected;
 
-        $expectedLower = (clone $expected)
-            ->setTimezone(new \DateTimeZone('UTC'))
-            ->sub($delta);
-
-        $expectedUpper = (clone $expected)
-            ->setTimezone(new \DateTimeZone('UTC'))
-            ->add($delta);
-
-        if ($actualClone < $expectedLower || $actualClone > $expectedUpper) {
+        if ($actual < $expectedLower->sub($delta) ||
+            $actual > $expectedUpper->add($delta)) {
             throw new ComparisonFailure(
                 $expected,
                 $actual,

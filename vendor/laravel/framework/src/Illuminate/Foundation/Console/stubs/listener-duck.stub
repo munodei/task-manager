@@ -2,11 +2,20 @@
 
 namespace DummyNamespace;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 class DummyClass
 {
+    /**
+     * The events handled by the listener.
+     *
+     * @var array
+     */
+    public static $listensFor = [
+        //
+    ];
+
     /**
      * Create the event listener.
      *

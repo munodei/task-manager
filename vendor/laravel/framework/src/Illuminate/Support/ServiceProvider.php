@@ -3,7 +3,6 @@
 namespace Illuminate\Support;
 
 use Illuminate\Console\Application as Artisan;
-use Illuminate\Contracts\Support\DeferrableProvider;
 
 abstract class ServiceProvider
 {
@@ -13,6 +12,13 @@ abstract class ServiceProvider
      * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
+
+    /**
+     * Indicates if loading of the provider is deferred.
+     *
+     * @var bool
+     */
+    protected $defer = false;
 
     /**
      * The paths that should be published.
@@ -40,16 +46,6 @@ abstract class ServiceProvider
     }
 
     /**
-     * Register any application services.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        //
-    }
-
-    /**
      * Merge the given configuration with the existing configuration.
      *
      * @param  string  $path
@@ -58,11 +54,9 @@ abstract class ServiceProvider
      */
     protected function mergeConfigFrom($path, $key)
     {
-        if (! $this->app->configurationIsCached()) {
-            $this->app['config']->set($key, array_merge(
-                require $path, $this->app['config']->get($key, [])
-            ));
-        }
+        $config = $this->app['config']->get($key, []);
+
+        $this->app['config']->set($key, array_merge(require $path, $config));
     }
 
     /**
@@ -81,23 +75,17 @@ abstract class ServiceProvider
     /**
      * Register a view file namespace.
      *
-     * @param  string|array  $path
+     * @param  string  $path
      * @param  string  $namespace
      * @return void
      */
     protected function loadViewsFrom($path, $namespace)
     {
-        $view = $this->app['view'];
-
-        if (is_array($this->app->config['view']['paths'])) {
-            foreach ($this->app->config['view']['paths'] as $viewPath) {
-                if (is_dir($appPath = $viewPath.'/vendor/'.$namespace)) {
-                    $view->addNamespace($namespace, $appPath);
-                }
-            }
+        if (is_dir($appPath = $this->app->resourcePath().'/views/vendor/'.$namespace)) {
+            $this->app['view']->addNamespace($namespace, $appPath);
         }
 
-        $view->addNamespace($namespace, $path);
+        $this->app['view']->addNamespace($namespace, $path);
     }
 
     /**
@@ -142,16 +130,16 @@ abstract class ServiceProvider
      * Register paths to be published by the publish command.
      *
      * @param  array  $paths
-     * @param  mixed  $groups
+     * @param  string  $group
      * @return void
      */
-    protected function publishes(array $paths, $groups = null)
+    protected function publishes(array $paths, $group = null)
     {
         $this->ensurePublishArrayInitialized($class = static::class);
 
         static::$publishes[$class] = array_merge(static::$publishes[$class], $paths);
 
-        foreach ((array) $groups as $group) {
+        if ($group) {
             $this->addPublishGroup($group, $paths);
         }
     }
@@ -303,6 +291,6 @@ abstract class ServiceProvider
      */
     public function isDeferred()
     {
-        return $this instanceof DeferrableProvider;
+        return $this->defer;
     }
 }

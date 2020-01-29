@@ -2,9 +2,9 @@
 
 namespace Illuminate\Console\Scheduling;
 
-use Illuminate\Contracts\Container\Container;
-use InvalidArgumentException;
 use LogicException;
+use InvalidArgumentException;
+use Illuminate\Contracts\Container\Container;
 
 class CallbackEvent extends Event
 {
@@ -25,14 +25,14 @@ class CallbackEvent extends Event
     /**
      * Create a new event instance.
      *
-     * @param  \Illuminate\Console\Scheduling\EventMutex  $mutex
+     * @param  \Illuminate\Console\Scheduling\Mutex  $mutex
      * @param  string  $callback
      * @param  array  $parameters
      * @return void
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct(EventMutex $mutex, $callback, array $parameters = [])
+    public function __construct(Mutex $mutex, $callback, array $parameters = [])
     {
         if (! is_string($callback) && ! is_callable($callback)) {
             throw new InvalidArgumentException(
@@ -60,20 +60,14 @@ class CallbackEvent extends Event
             return;
         }
 
-        $pid = getmypid();
-
-        register_shutdown_function(function () use ($pid) {
-            if ($pid === getmypid()) {
-                $this->removeMutex();
-            }
+        register_shutdown_function(function () {
+            $this->removeMutex();
         });
 
         parent::callBeforeCallbacks($container);
 
         try {
-            $response = is_object($this->callback)
-                        ? $container->call([$this->callback, '__invoke'], $this->parameters)
-                        : $container->call($this->callback, $this->parameters);
+            $response = $container->call($this->callback, $this->parameters);
         } finally {
             $this->removeMutex();
 
@@ -90,7 +84,7 @@ class CallbackEvent extends Event
      */
     protected function removeMutex()
     {
-        if ($this->description && $this->withoutOverlapping) {
+        if ($this->description) {
             $this->mutex->forget($this);
         }
     }
@@ -100,8 +94,6 @@ class CallbackEvent extends Event
      *
      * @param  int  $expiresAt
      * @return $this
-     *
-     * @throws \LogicException
      */
     public function withoutOverlapping($expiresAt = 1440)
     {
@@ -118,26 +110,6 @@ class CallbackEvent extends Event
         return $this->skip(function () {
             return $this->mutex->exists($this);
         });
-    }
-
-    /**
-     * Allow the event to only run on one server for each cron expression.
-     *
-     * @return $this
-     *
-     * @throws \LogicException
-     */
-    public function onOneServer()
-    {
-        if (! isset($this->description)) {
-            throw new LogicException(
-                "A scheduled event name is required to only run on one server. Use the 'name' method before 'onOneServer'."
-            );
-        }
-
-        $this->onOneServer = true;
-
-        return $this;
     }
 
     /**

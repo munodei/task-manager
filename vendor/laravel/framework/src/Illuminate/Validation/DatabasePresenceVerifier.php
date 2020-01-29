@@ -3,8 +3,8 @@
 namespace Illuminate\Validation;
 
 use Closure;
-use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Support\Str;
+use Illuminate\Database\ConnectionResolverInterface;
 
 class DatabasePresenceVerifier implements PresenceVerifierInterface
 {
@@ -39,9 +39,9 @@ class DatabasePresenceVerifier implements PresenceVerifierInterface
      * @param  string  $collection
      * @param  string  $column
      * @param  string  $value
-     * @param  int|null  $excludeId
-     * @param  string|null  $idColumn
-     * @param  array  $extra
+     * @param  int     $excludeId
+     * @param  string  $idColumn
+     * @param  array   $extra
      * @return int
      */
     public function getCount($collection, $column, $value, $excludeId = null, $idColumn = null, array $extra = [])
@@ -68,7 +68,7 @@ class DatabasePresenceVerifier implements PresenceVerifierInterface
     {
         $query = $this->table($collection)->whereIn($column, $values);
 
-        return $this->addConditions($query, $extra)->distinct()->count($column);
+        return $this->addConditions($query, $extra)->count();
     }
 
     /**
@@ -120,7 +120,7 @@ class DatabasePresenceVerifier implements PresenceVerifierInterface
      * @param  string  $table
      * @return \Illuminate\Database\Query\Builder
      */
-    public function table($table)
+    protected function table($table)
     {
         return $this->db->connection($this->connection)->table($table)->useWritePdo();
     }

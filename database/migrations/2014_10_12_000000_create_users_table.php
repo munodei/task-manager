@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
@@ -12,39 +13,27 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        //Schema::defaultStringLength(256);
 
-        Schema::create('users', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('name')->nullable();
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
-            $table->string('user_name')->nullable();
-            $table->string('email', 191)->unique()->nullable();
-            $table->string('password')->nullable();
+         if(!Schema::hasTable('users')){
+            Schema::create('users', function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('name');
+                $table->string('email')->unique();
+                $table->string('password');
+                
+                $table->string('first_name')->nullable();
+                $table->string('middle_name')->nullable();
+                $table->string('last_name')->nullable();
+                $table->string('city')->nullable();
+                $table->integer('role_id')->unsigned()->default(3);
 
-            $table->integer('country_id')->nullable();
-            $table->string('mobile')->nullable();
-            $table->enum('gender', ['male', 'female', 'third_gender'])->nullable();
-            $table->string('address')->nullable();
-            $table->string('website')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('photo')->nullable();
-            $table->enum('photo_storage', ['s3', 'public'])->nullable();
+                $table->rememberToken();
+                $table->timestamps();
+                
+            });
+         }
 
-            $table->enum('user_type', ['user', 'admin'])->nullable();
-            //active_status 0:pending, 1:active, 2:block;
-            $table->enum('active_status', [0,1,2])->nullable();
-            //is_email_verified 0:unverified, 1:verified
-            $table->enum('is_email_verified', [0,1])->nullable();
-            $table->string('activation_code')->nullable();
-            //is_online => 0:offline, 1:online;
-            $table->enum('is_online', [0,1])->nullable();
-
-            $table->timestamp('last_login')->nullable();
-            $table->rememberToken();
-            $table->timestamps();
-        });
+       
     }
 
     /**
@@ -54,6 +43,6 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        Schema::drop('users');
+        Schema::dropIfExists('users');
     }
 }

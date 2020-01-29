@@ -2,8 +2,8 @@
 
 namespace Illuminate\Redis\Limiters;
 
-use Illuminate\Contracts\Redis\LimiterTimeoutException;
 use Illuminate\Support\InteractsWithTime;
+use Illuminate\Contracts\Redis\LimiterTimeoutException;
 
 class DurationLimiterBuilder
 {
@@ -97,7 +97,7 @@ class DurationLimiterBuilder
     }
 
     /**
-     * Execute the given callback if a lock is obtained, otherwise call the failure callback.
+     * Execute the given callback if a lock is obtained, otherise call the failure callback.
      *
      * @param  callable  $callback
      * @param  callable|null  $failure

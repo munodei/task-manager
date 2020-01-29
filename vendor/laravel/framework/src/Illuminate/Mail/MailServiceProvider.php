@@ -2,15 +2,20 @@
 
 namespace Illuminate\Mail;
 
-use Illuminate\Contracts\Support\DeferrableProvider;
-use Illuminate\Support\Arr;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
-use Swift_DependencyContainer;
 use Swift_Mailer;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\ServiceProvider;
 
-class MailServiceProvider extends ServiceProvider implements DeferrableProvider
+class MailServiceProvider extends ServiceProvider
 {
+    /**
+     * Indicates if loading of the provider is deferred.
+     *
+     * @var bool
+     */
+    protected $defer = true;
+
     /**
      * Register the service provider.
      *
@@ -19,7 +24,9 @@ class MailServiceProvider extends ServiceProvider implements DeferrableProvider
     public function register()
     {
         $this->registerSwiftMailer();
+
         $this->registerIlluminateMailer();
+
         $this->registerMarkdownRenderer();
     }
 
@@ -85,12 +92,6 @@ class MailServiceProvider extends ServiceProvider implements DeferrableProvider
         // mailer instance, passing in the transport instances, which allows us to
         // override this transporter instances during app start-up if necessary.
         $this->app->singleton('swift.mailer', function ($app) {
-            if ($domain = $app->make('config')->get('mail.domain')) {
-                Swift_DependencyContainer::getInstance()
-                                ->register('mime.idgenerator.idright')
-                                ->asValue($domain);
-            }
-
             return new Swift_Mailer($app['swift.transport']->driver());
         });
     }
