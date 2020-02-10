@@ -2,11 +2,23 @@
 
 namespace Illuminate\Support\Facades;
 
-use Illuminate\Notifications\ChannelManager;
 use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Testing\Fakes\NotificationFake;
 
 /**
+ * @method static void send(\Illuminate\Support\Collection|array|mixed $notifiables, $notification)
+ * @method static void sendNow(\Illuminate\Support\Collection|array|mixed $notifiables, $notification)
+ * @method static mixed channel(string|null $name = null)
+ * @method static \Illuminate\Notifications\ChannelManager locale(string|null $locale)
+ * @method static void assertSentTo(mixed $notifiable, string $notification, callable $callback = null)
+ * @method static void assertSentToTimes(mixed $notifiable, string $notification, int $times = 1)
+ * @method static void assertNotSentTo(mixed $notifiable, string $notification, callable $callback = null)
+ * @method static void assertNothingSent()
+ * @method static void assertTimesSent(int $expectedCount, string $notification)
+ * @method static \Illuminate\Support\Collection sent(mixed $notifiable, string $notification, callable $callback = null)
+ * @method static bool hasSent(mixed $notifiable, string $notification)
+ *
  * @see \Illuminate\Notifications\ChannelManager
  */
 class Notification extends Facade
@@ -14,11 +26,13 @@ class Notification extends Facade
     /**
      * Replace the bound instance with a fake.
      *
-     * @return void
+     * @return \Illuminate\Support\Testing\Fakes\NotificationFake
      */
     public static function fake()
     {
-        static::swap(new NotificationFake);
+        static::swap($fake = new NotificationFake);
+
+        return $fake;
     }
 
     /**

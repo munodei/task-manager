@@ -2,21 +2,12 @@
 
 namespace DummyNamespace;
 
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
 class DummyClass implements ShouldQueue
 {
     use InteractsWithQueue;
-
-    /**
-     * The events handled by the listener.
-     *
-     * @var array
-     */
-    public static $listensFor = [
-        //
-    ];
 
     /**
      * Create the event listener.

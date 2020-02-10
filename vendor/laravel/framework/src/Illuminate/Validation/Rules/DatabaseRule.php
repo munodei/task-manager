@@ -3,6 +3,8 @@
 namespace Illuminate\Validation\Rules;
 
 use Closure;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 trait DatabaseRule
 {
@@ -21,7 +23,7 @@ trait DatabaseRule
     protected $column;
 
     /**
-     * There extra where clauses for the query.
+     * The extra where clauses for the query.
      *
      * @var array
      */
@@ -43,15 +45,35 @@ trait DatabaseRule
      */
     public function __construct($table, $column = 'NULL')
     {
-        $this->table = $table;
         $this->column = $column;
+
+        $this->table = $this->resolveTableName($table);
+    }
+
+    /**
+     * Resolves the name of the table from the given string.
+     *
+     * @param  string  $table
+     * @return string
+     */
+    public function resolveTableName($table)
+    {
+        if (! Str::contains($table, '\\') || ! class_exists($table)) {
+            return $table;
+        }
+
+        $model = new $table;
+
+        return $model instanceof Model
+                ? $model->getTable()
+                : $table;
     }
 
     /**
      * Set a "where" constraint on the query.
      *
-     * @param  string  $column
-     * @param  array|string  $value
+     * @param  \Closure|string  $column
+     * @param  array|string|null  $value
      * @return $this
      */
     public function where($column, $value = null)
@@ -138,7 +160,7 @@ trait DatabaseRule
     /**
      * Register a custom query callback.
      *
-     * @param  \Closure $callback
+     * @param  \Closure  $callback
      * @return $this
      */
     public function using(Closure $callback)
@@ -166,7 +188,7 @@ trait DatabaseRule
     protected function formatWheres()
     {
         return collect($this->wheres)->map(function ($where) {
-            return $where['column'].','.$where['value'];
+            return $where['column'].','.'"'.str_replace('"', '""', $where['value']).'"';
         })->implode(',');
     }
 }

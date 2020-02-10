@@ -65,9 +65,7 @@ class PackageManifest
      */
     public function providers()
     {
-        return collect($this->getManifest())->flatMap(function ($configuration, $name) {
-            return (array) ($configuration['providers'] ?? []);
-        })->filter()->all();
+        return $this->config('providers');
     }
 
     /**
@@ -77,8 +75,19 @@ class PackageManifest
      */
     public function aliases()
     {
-        return collect($this->getManifest())->flatMap(function ($configuration, $name) {
-            return (array) ($configuration['aliases'] ?? []);
+        return $this->config('aliases');
+    }
+
+    /**
+     * Get all of the values for all packages for the given configuration name.
+     *
+     * @param  string  $key
+     * @return array
+     */
+    public function config($key)
+    {
+        return collect($this->getManifest())->flatMap(function ($configuration) use ($key) {
+            return (array) ($configuration[$key] ?? []);
         })->filter()->all();
     }
 
@@ -96,6 +105,8 @@ class PackageManifest
         if (! file_exists($this->manifestPath)) {
             $this->build();
         }
+
+        $this->files->get($this->manifestPath);
 
         return $this->manifest = file_exists($this->manifestPath) ?
             $this->files->getRequire($this->manifestPath) : [];
@@ -119,7 +130,7 @@ class PackageManifest
         $this->write(collect($packages)->mapWithKeys(function ($package) {
             return [$this->format($package['name']) => $package['extra']['laravel'] ?? []];
         })->each(function ($configuration) use (&$ignore) {
-            $ignore += $configuration['dont-discover'] ?? [];
+            $ignore = array_merge($ignore, $configuration['dont-discover'] ?? []);
         })->reject(function ($configuration, $package) use ($ignore, $ignoreAll) {
             return $ignoreAll || in_array($package, $ignore);
         })->filter()->all());
@@ -157,15 +168,16 @@ class PackageManifest
      *
      * @param  array  $manifest
      * @return void
+     *
      * @throws \Exception
      */
     protected function write(array $manifest)
     {
         if (! is_writable(dirname($this->manifestPath))) {
-            throw new Exception('The bootstrap/cache directory must be present and writable.');
+            throw new Exception('The '.dirname($this->manifestPath).' directory must be present and writable.');
         }
 
-        $this->files->put(
+        $this->files->replace(
             $this->manifestPath, '<?php return '.var_export($manifest, true).';'
         );
     }

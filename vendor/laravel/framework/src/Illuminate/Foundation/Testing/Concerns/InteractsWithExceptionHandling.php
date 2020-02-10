@@ -3,19 +3,19 @@
 namespace Illuminate\Foundation\Testing\Concerns;
 
 use Exception;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 trait InteractsWithExceptionHandling
 {
     /**
-     * The previous exception handler.
+     * The original exception handler.
      *
-     * @var ExceptionHandler|null
+     * @var \Illuminate\Contracts\Debug\ExceptionHandler|null
      */
-    protected $previousExceptionHandler;
+    protected $originalExceptionHandler;
 
     /**
      * Restore exception handling.
@@ -24,8 +24,8 @@ trait InteractsWithExceptionHandling
      */
     protected function withExceptionHandling()
     {
-        if ($this->previousExceptionHandler) {
-            $this->app->instance(ExceptionHandler::class, $this->previousExceptionHandler);
+        if ($this->originalExceptionHandler) {
+            $this->app->instance(ExceptionHandler::class, $this->originalExceptionHandler);
         }
 
         return $this;
@@ -60,30 +60,34 @@ trait InteractsWithExceptionHandling
      */
     protected function withoutExceptionHandling(array $except = [])
     {
-        $this->previousExceptionHandler = app(ExceptionHandler::class);
+        if ($this->originalExceptionHandler == null) {
+            $this->originalExceptionHandler = app(ExceptionHandler::class);
+        }
 
-        $this->app->instance(ExceptionHandler::class, new class($this->previousExceptionHandler, $except) implements ExceptionHandler {
+        $this->app->instance(ExceptionHandler::class, new class($this->originalExceptionHandler, $except) implements ExceptionHandler {
             protected $except;
-            protected $previousHandler;
+            protected $originalHandler;
 
             /**
              * Create a new class instance.
              *
-             * @param \Illuminate\Contracts\Debug\ExceptionHandler
+             * @param  \Illuminate\Contracts\Debug\ExceptionHandler  $originalHandler
              * @param  array  $except
              * @return void
              */
-            public function __construct($previousHandler, $except = [])
+            public function __construct($originalHandler, $except = [])
             {
                 $this->except = $except;
-                $this->previousHandler = $previousHandler;
+                $this->originalHandler = $originalHandler;
             }
 
             /**
-             * Report the given exception.
+             * Report or log an exception.
              *
              * @param  \Exception  $e
              * @return void
+             *
+             * @throws \Exception
              */
             public function report(Exception $e)
             {
@@ -91,35 +95,46 @@ trait InteractsWithExceptionHandling
             }
 
             /**
-             * Render the given exception.
+             * Determine if the exception should be reported.
+             *
+             * @param  \Exception  $e
+             * @return bool
+             */
+            public function shouldReport(Exception $e)
+            {
+                return false;
+            }
+
+            /**
+             * Render an exception into an HTTP response.
              *
              * @param  \Illuminate\Http\Request  $request
              * @param  \Exception  $e
-             * @return mixed
+             * @return \Symfony\Component\HttpFoundation\Response
              *
-             * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException|\Exception
+             * @throws \Exception
              */
             public function render($request, Exception $e)
             {
+                foreach ($this->except as $class) {
+                    if ($e instanceof $class) {
+                        return $this->originalHandler->render($request, $e);
+                    }
+                }
+
                 if ($e instanceof NotFoundHttpException) {
                     throw new NotFoundHttpException(
                         "{$request->method()} {$request->url()}", null, $e->getCode()
                     );
                 }
 
-                foreach ($this->except as $class) {
-                    if ($e instanceof $class) {
-                        return $this->previousHandler->render($request, $e);
-                    }
-                }
-
                 throw $e;
             }
 
             /**
-             * Render the exception for the console.
+             * Render an exception to the console.
              *
-             * @param  \Symfony\Component\Console\Output\OutputInterface
+             * @param  \Symfony\Component\Console\Output\OutputInterface  $output
              * @param  \Exception  $e
              * @return void
              */

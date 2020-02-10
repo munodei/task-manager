@@ -2,8 +2,8 @@
 
 namespace Illuminate\Foundation\Validation;
 
-use Illuminate\Http\Request;
 use Illuminate\Contracts\Validation\Factory;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 trait ValidatesRequests
@@ -14,6 +14,8 @@ trait ValidatesRequests
      * @param  \Illuminate\Contracts\Validation\Validator|array  $validator
      * @param  \Illuminate\Http\Request|null  $request
      * @return array
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function validateWith($validator, Request $request = null)
     {
@@ -23,11 +25,7 @@ trait ValidatesRequests
             $validator = $this->getValidationFactory()->make($request->all(), $validator);
         }
 
-        $validator->validate();
-
-        return $request->only(
-            array_keys($validator->getRules())
-        );
+        return $validator->validate();
     }
 
     /**
@@ -38,15 +36,15 @@ trait ValidatesRequests
      * @param  array  $messages
      * @param  array  $customAttributes
      * @return array
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function validate(Request $request, array $rules,
                              array $messages = [], array $customAttributes = [])
     {
-        $this->getValidationFactory()
-             ->make($request->all(), $rules, $messages, $customAttributes)
-             ->validate();
-
-        return $request->only(array_keys($rules));
+        return $this->getValidationFactory()->make(
+            $request->all(), $rules, $messages, $customAttributes
+        )->validate();
     }
 
     /**

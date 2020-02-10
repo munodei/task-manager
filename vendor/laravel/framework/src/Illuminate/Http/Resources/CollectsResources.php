@@ -2,8 +2,9 @@
 
 namespace Illuminate\Http\Resources;
 
-use Illuminate\Support\Str;
 use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 trait CollectsResources
 {
@@ -19,13 +20,15 @@ trait CollectsResources
             return $resource;
         }
 
+        if (is_array($resource)) {
+            $resource = new Collection($resource);
+        }
+
         $collects = $this->collects();
 
-        if ($collects && ! $resource->first() instanceof $collects) {
-            $this->collection = $resource->mapInto($collects);
-        } else {
-            $this->collection = $resource->toBase();
-        }
+        $this->collection = $collects && ! $resource->first() instanceof $collects
+            ? $resource->mapInto($collects)
+            : $resource->toBase();
 
         return $resource instanceof AbstractPaginator
                     ? $resource->setCollection($this->collection)

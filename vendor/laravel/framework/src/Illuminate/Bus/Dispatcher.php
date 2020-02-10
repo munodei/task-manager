@@ -3,12 +3,12 @@
 namespace Illuminate\Bus;
 
 use Closure;
-use RuntimeException;
-use Illuminate\Pipeline\Pipeline;
+use Illuminate\Contracts\Bus\QueueingDispatcher;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Container\Container;
-use Illuminate\Contracts\Bus\QueueingDispatcher;
+use Illuminate\Pipeline\Pipeline;
+use RuntimeException;
 
 class Dispatcher implements QueueingDispatcher
 {
@@ -71,9 +71,9 @@ class Dispatcher implements QueueingDispatcher
     {
         if ($this->queueResolver && $this->commandShouldBeQueued($command)) {
             return $this->dispatchToQueue($command);
-        } else {
-            return $this->dispatchNow($command);
         }
+
+        return $this->dispatchNow($command);
     }
 
     /**
@@ -155,9 +155,9 @@ class Dispatcher implements QueueingDispatcher
 
         if (method_exists($command, 'queue')) {
             return $command->queue($queue, $command);
-        } else {
-            return $this->pushCommandToQueue($queue, $command);
         }
+
+        return $this->pushCommandToQueue($queue, $command);
     }
 
     /**
@@ -182,6 +182,20 @@ class Dispatcher implements QueueingDispatcher
         }
 
         return $queue->push($command);
+    }
+
+    /**
+     * Dispatch a command to its appropriate handler after the current process.
+     *
+     * @param  mixed  $command
+     * @param  mixed  $handler
+     * @return void
+     */
+    public function dispatchAfterResponse($command, $handler = null)
+    {
+        $this->container->terminating(function () use ($command, $handler) {
+            $this->dispatchNow($command, $handler);
+        });
     }
 
     /**

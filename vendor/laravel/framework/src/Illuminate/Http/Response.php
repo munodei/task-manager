@@ -3,15 +3,18 @@
 namespace Illuminate\Http;
 
 use ArrayObject;
-use JsonSerializable;
-use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Traits\Macroable;
+use JsonSerializable;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
 class Response extends BaseResponse
 {
-    use ResponseTrait;
+    use ResponseTrait, Macroable {
+        Macroable::__call as macroCall;
+    }
 
     /**
      * Set the content on the response.
@@ -62,7 +65,7 @@ class Response extends BaseResponse
     /**
      * Morph the given content into JSON.
      *
-     * @param  mixed   $content
+     * @param  mixed  $content
      * @return string
      */
     protected function morphToJson($content)
