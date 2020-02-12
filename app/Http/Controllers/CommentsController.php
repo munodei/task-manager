@@ -28,19 +28,37 @@ class CommentsController extends Controller
     {
         //
     }
+    public function addTaskComment(Request $request){
+      $id = $request->user()->id;
+      extract($_POST);
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+      if(!empty($_POST["parent_id"]) && !empty($_POST["task_id"])){
+
+      $comment = Comment::create(['parent_id'=>$parent_id, 'task_id'=>$task_id, 'body'=>$body, 'url'=>$url, 'user_id'=>$id,'commentable_id'=>$commentable_id,'commentable_type'=>$commentable_type,'created_at'=>date('Y-m-d h:i:s'), 'updated_at'=>date('Y-m-d h:i:s')]);
+
+      $message = '<label class="text-success">Comment posted Successfully.</label>';
+
+    	$status = array(
+    		'error'  => 0,
+    		'message' => $message
+    	);
+    }
+    else{
+
+      $message = '<label class="text-danger">Error: Comment not posted.</label>';
+
+      $status = array(
+        'error'  => 1,
+        'message' => $message
+      );
+    }
+
+    echo json_encode($status);
+
+    }
+
     public function store(Request $request)
     {
-        //
-
-         //
-
          if(Auth::check()){
             $comment = Comment::create([
                 'body' => $request->input('body'),
@@ -56,7 +74,7 @@ class CommentsController extends Controller
             }
 
         }
-        
+
             return back()->withInput()->with('errors', 'Error creating new comment');
 
     }
@@ -105,4 +123,64 @@ class CommentsController extends Controller
     {
         //
     }
+
+    public function showComments($id){
+
+      $commentsResult = Comment::leftjoin('users','users.id','=','comments.user_id')->where([['task_id',$id],['parent_id',-1]])->select('comments.id as commentID','comments.*','users.*')->orderby('comments.id','DESC')->get();
+      $commentHTML    = '';
+      foreach($commentsResult as $comment){
+
+
+      		$panelColor="panel-info";
+
+
+      	$commentHTML .= '
+      		<div class="panel '.$panelColor.'">
+
+      		<div class="panel-heading">By <b>'.$comment->name.'</b> on <i>'.$comment->created_at.'</i></div>
+      		<div class="panel-body">'.$comment->body.'</div>
+      		<div class="panel-footer" align="right"><button type="button" class="btn btn-primary reply" id="'.$comment->commentID.'">Reply</button></div>
+      		</div> ';
+
+
+
+      	$commentHTML .= self::getCommentReply($id,$comment->commentID);
+}
+echo $commentHTML;
+}
+public function getCommentReply($id, $parentId = -1, $marginLeft = 0) {
+
+
+	$commentHTML = '';
+	$commentsResult = Comment::leftjoin('users','users.id','=','comments.user_id')->where([['task_id',$id],['parent_id',$parentId]])->select('comments.id as commentID','comments.*','users.*')->orderby('comments.id','DESC')->get();
+	$commentsCount = sizeof($commentsResult);
+
+	if($parentId == 0) {
+		$marginLeft = 0;
+	} else {
+		$marginLeft = $marginLeft + 48;
+	}
+	if($commentsCount > 0) {
+		foreach($commentsResult as $comment){
+
+		$panelColor="panel-info";
+
+    $commentHTML .= '
+      <div class="panel '.$panelColor.'" style="margin-left:'.$marginLeft.'px">
+
+      <div class="panel-heading">By <b>'.$comment->name.'</b> on <i>'.$comment->created_at.'</i></div>
+      <div class="panel-body">'.$comment->body.'</div>
+      <div class="panel-footer" align="right"><button type="button" class="btn btn-primary reply" id="'.$comment->commentID.'">Reply</button></div>
+      </div> ';
+
+
+
+    $commentHTML .= self::getCommentReply($id,$comment->commentID);
+
+		}
+	}
+	return $commentHTML;
+}
+
+
 }

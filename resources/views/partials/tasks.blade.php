@@ -6,38 +6,38 @@
     	    <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        <span class="fa fa-comments-o"></span> 
-                        Recent Comments
+                        <span class="fa fa-tasks"></span> 
+                        Tasks in Group
                     </h3>
                 </div>
                 <div class="panel-body">
                     <ul class="media-list">
 
-                    @foreach($comments as $comment)
+                    @foreach($tasks as $task)
+                      <a href="{{ route('tasks.show',['task'=>$task])}}">
                         <li class="media">
                             <div class="media-left">
-                                <img src="http://placehold.it/60x60" class="img-circle">
+                                <span class="fa fa-play"></span> 
                             </div>
                             <div class="media-body">
                                 <h4 class="media-heading">
                                     <small>
 
-                                    <a href="users/{{$comment->user->id}} " > {{ $comment->user->first_name}} {{ $comment->user->last_name}}
-                               -  {{ $comment->user->email}} </a>
+
                                <br>
-                                        commented on {{ $comment->created_at}}
+                                        Task Status <span class="badge badge-secondary">{{ $task->status }}</span>
                                     </small>
                                 </h4>
                                 <p>
-                                {{ $comment->body }}
+                                {{ $task->name }}
                                 </p>
-                               <b> Proof: </b>
+                               <b> Task Description: </b>
                                 <p>
-                                {{ $comment->url }}
+                                {{ $task->task_description }}
                                 </p>
                             </div>
                         </li>
-
+                      </a>
                         @endforeach
                     </ul>
                 </div>

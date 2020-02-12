@@ -8,19 +8,13 @@ class Comment extends Model
 {
     //
     protected $fillable = [
-        'body',
-        'url',
-        'commentable_id',
-        'commentable_type',
-        'user_id',
-
-    ];
+'id', 'parent_id', 'task_id', 'project_id', 'group_id', 'body', 'url', 'user_id', 'commentable_id', 'commentable_type', 'created_at', 'updated_at'  ];
 
     public function commentable()
     {
         return $this->morphTo();
     }
-    
+
 
         /**
      * Return the user associated with this comment.

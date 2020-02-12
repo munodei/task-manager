@@ -14,7 +14,12 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
     <script src="https://use.fontawesome.com/874dbadbd7.js"></script>
-
+<style>
+a:hover, a:visited, a:link, a:active
+{
+    text-decoration: none;
+}
+</style>
 
 </head>
 <body>
@@ -58,7 +63,7 @@
 
 
 <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" 
+                                <a href="#" class="dropdown-toggle"
                                 data-toggle="dropdown" role="button" aria-expanded="false">
                                 <i class="fa fa-user" aria-hidden="true"></i>  Admin <span class="caret"></span>
                                 </a>
@@ -77,7 +82,7 @@
 
 
                             <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" 
+                                <a href="#" class="dropdown-toggle"
                                 data-toggle="dropdown" role="button" aria-expanded="false">
                                 <i class="fa fa-user" aria-hidden="true"></i>  {{ Auth::user()->name }} <span class="caret"></span>
                                 </a>
@@ -109,7 +114,7 @@
 
             <div class="row">
                 @yield('content')
-            
+
             </div>
          </div>
 

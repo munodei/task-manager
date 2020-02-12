@@ -4,22 +4,21 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Task extends Model
+class GroupTask extends Model
 {
-    //
-    protected $fillable = ['id','name','status','task_description','group_task','project_id','user_id','days','hours','company_id','created_at','updated_at'];
-
+    protected $table = 'group_tasks';
+    protected $fillable = ['id','user_id','project_id', 'group_name', 'group_description', 'position', 'created_at', 'updated_at'];
 
     public function user(){
-		return $this->belongsTo('App\User');
+    return $this->belongsTo('App\User');
     }
 
     public function project(){
-		return $this->belongsTo('App\Project');
+    return $this->belongsTo('App\Project');
     }
 
     public function company(){
-		return $this->belongsTo('App\Company');
+    return $this->belongsTo('App\Company');
     }
 
     public function users()

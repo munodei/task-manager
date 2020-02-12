@@ -2,8 +2,9 @@
 
 @section('content')
 
-     <div class="row col-md-9 col-lg-9 col-sm-9 pull-left ">
 
+
+     <div class="row col-md-9 col-lg-9 col-sm-9 pull-left ">
       <!-- The justified navigation menu is meant for single line per list item.
            Multiple lines will require custom code not provided by Bootstrap. -->
       <!-- Jumbotron -->
@@ -19,6 +20,7 @@
 <br/>
 
 @include('partials.comments')
+
 
 <div class="row container-fluid">
 
@@ -85,7 +87,7 @@
               <li><a href="{{ url('/') }}/projects/{{ $project->id }}/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> Edit</a></li>
               <li><a href="{{ route('projects.create') }}"><i class="fa fa-plus-circle" aria-hidden="true"></i> Create new project</a></li>
               <li><a href="{{ route('projects.index') }}"><i class="fa fa-user-o" aria-hidden="true"></i> My projects</a></li>
-              <li><a href="{{ route('create-task-group',['project_id'=>$project->id ]) }}"><i class="fa fa-folder" aria-hidden="true"></i> Add Task Group</a></li>
+              <li><a href="{{ route('task-groups.create') }}"><i class="fa fa-folder" aria-hidden="true"></i> Add Task Group</a></li>
             <br/>
 
             <h4>Project Task Groups</h4>
@@ -168,7 +170,15 @@
                       <script type="text/javascript">
 
                             $('#addMember').on('click',function(e){
-                              e.preventDefault();
+                              e.preventDefault(); //prevent the form from auto submit
+
+                            //   $.ajaxSetup({
+                            //     headers: {
+                            //         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+                            //     }
+                            // });
+
+
                             var formData = {
                               'project_id' : $('#project_id').val(),
                               'email' : $('#email').val(),

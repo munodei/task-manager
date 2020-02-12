@@ -2,8 +2,9 @@
 
 @section('content')
 
-     <div class="row col-md-9 col-lg-9 col-sm-9 pull-left ">
 
+
+     <div class="row col-md-9 col-lg-9 col-sm-9 pull-left ">
       <!-- The justified navigation menu is meant for single line per list item.
            Multiple lines will require custom code not provided by Bootstrap. -->
       <!-- Jumbotron -->
@@ -18,59 +19,49 @@
      <!-- <a href="/projects/create" class="pull-right btn btn-default btn-sm" >Add Project</a> -->
 <br/>
 
-@include('partials.comments')
 
-<div class="row container-fluid">
+ <div class="row">
+		<div class="col-md-12 col-sm-12  col-xs-12 col-lg-12">
 
-<form method="post" action="{{ route('comments.store') }}">
-                            {{ csrf_field() }}
+            <!-- Fluid width widget -->
+    	    <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <span class="fa fa-tasks"></span> 
+                        Task Groups in Project
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="media-list">
 
-
-                            <input type="hidden" name="commentable_type" value="App\Project">
-                            <input type="hidden" name="commentable_id" value="{{$project->id}}">
-
-
-                            <div class="form-group">
-                                <label for="comment-content">Comment</label>
-                                <textarea placeholder="Enter comment"
-                                          style="resize: vertical"
-                                          id="comment-content"
-                                          name="body"
-                                          rows="3" spellcheck="false"
-                                          class="form-control autosize-target text-left">
-
-
-                                          </textarea>
+                    @foreach($tasks as $task)
+                    <a href="{{ route('task-groups.show',['task_group'=>$task->id])}}">
+                        <li class="media jumbotron">
+                            <div class="media-left">
+                                <span class="fa fa-play"></span> 
                             </div>
+                            <div class="media-body">
 
-
-                            <div class="form-group">
-                                <label for="comment-content">Proof of work done (Url/Photos)</label>
-                                <textarea placeholder="Enter url or screenshots"
-                                          style="resize: vertical"
-                                          id="comment-content"
-                                          name="url"
-                                          rows="2" spellcheck="false"
-                                          class="form-control autosize-target text-left">
-
-
-                                          </textarea>
+                                <p>
+                                <b> Group: </b>{{ $task->group_name }}
+                                </p>
+                               <b> Group Description: </b>
+                                <p>
+                                {{ $task->group_description }}
+                                </p>
                             </div>
+                        </li>
+                      </a>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+            <!-- End fluid width widget -->
 
+		</div>
+	</div>
 
-                            <div class="form-group">
-                                <input type="submit" class="btn btn-primary"
-                                       value="Submit"/>
-                            </div>
-                        </form>
-
-
-
-                        </div>
-
-
-
-      </div>
+  </div>
 </div>
 
 
@@ -82,21 +73,11 @@
           <div class="sidebar-module">
             <h4>Actions</h4>
             <ol class="list-unstyled">
-              <li><a href="{{ url('/') }}/projects/{{ $project->id }}/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> Edit</a></li>
-              <li><a href="{{ route('projects.create') }}"><i class="fa fa-plus-circle" aria-hidden="true"></i> Create new project</a></li>
-              <li><a href="{{ route('projects.index') }}"><i class="fa fa-user-o" aria-hidden="true"></i> My projects</a></li>
-              <li><a href="{{ route('create-task-group',['project_id'=>$project->id ]) }}"><i class="fa fa-folder" aria-hidden="true"></i> Add Task Group</a></li>
+              <li><a href="{{ url('/') }}/projects/{{ $project->id }}/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> Edit Project</a></li>
+              <li><a href="{{ route('task-groups.create') }}"><i class="fa fa-folder" aria-hidden="true"></i> Add Task Group</a></li>
+              <li><a href="{{ route('projects.index') }}"><i class="fa fa-user-o" aria-hidden="true"></i> My Projects</a></li>
+
             <br/>
-
-            <h4>Project Task Groups</h4>
-            <ol class="list-unstyled">
-              @foreach($task_groups as $task_group)
-
-                <li><a href="{{ route('task-groups.show',['task_group'=>$task_group->id])}}"><i class="fa fa-play" aria-hidden="true"></i> View Tasks in '{{ $task_group->group_name }}'</a></li>
-
-              @endforeach
-            <br/>
-
 
             @if($project->user_id == Auth::user()->id)
 
@@ -127,13 +108,13 @@
             </ol>
 <hr/>
 
-            <h4>Add members</h4>
+            <h4>Add Members To Task Group</h4>
             <div class="row">
               <div class="col-lg-12 col-md-12 col-xs-12  col-sm-12 ">
               <form id="add-user" action="{{ route('projects.adduser') }}"  method="POST" >
                 {{ csrf_field() }}
                 <div class="input-group">
-                  <input class="form-control" name = "project_id" id="project_id" value="{{$project->id}}" type="hidden">
+                  <input class="form-control" name = "project_id" id="project_id" value="{{ $project->id }}" type="hidden">
                   <input type="text" required class="form-control" id="email"  name = "email" placeholder="Email">
                   <span class="input-group-btn">
                     <button class="btn btn-default" type="submit" id="addMember" >Add!</button>
@@ -143,13 +124,7 @@
               </div><!-- /.col-lg-6 -->
             </div><!-- /.row -->
 <br/>
-            <h4>Team Members</h4>
-            <ol class="list-unstyled" id="member-list">
-            @foreach($project->users as $user)
-              <li><a href="#"> {{$user->email}} </a> </li>
 
-              @endforeach
-            </ol>
 
           </div>
 
@@ -168,7 +143,15 @@
                       <script type="text/javascript">
 
                             $('#addMember').on('click',function(e){
-                              e.preventDefault();
+                              e.preventDefault(); //prevent the form from auto submit
+
+                            //   $.ajaxSetup({
+                            //     headers: {
+                            //         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+                            //     }
+                            // });
+
+
                             var formData = {
                               'project_id' : $('#project_id').val(),
                               'email' : $('#email').val(),

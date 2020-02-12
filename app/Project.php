@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    //
+
     protected $fillable = [
         'name',
         'description',
@@ -18,13 +18,15 @@ class Project extends Model
 
 
     public function users(){
+
 		return $this->belongsToMany('App\User');
+
     }
 
-    
-
     public function company(){
+
 		return $this->belongsTo('App\Company');
+
     }
 
     public function comments()
